@@ -157,7 +157,6 @@ class RSS
 
             <link>'. $this->escape_xml($row["link"]) .'</link>
             <description><![CDATA['. $row["description"] .']]></description>
-            <itunes:image href="'.$this->escape_xml($this->image_url).'"/>
 
             <itunes:subtitle>A podcast from NPR</itunes:subtitle>
             <guid>'.$this->escape_xml($row['media_url']).'</guid>
