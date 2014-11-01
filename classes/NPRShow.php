@@ -1,11 +1,21 @@
 <?php namespace Podcast;
 
 class NPRShow extends RestClient {
+    /**
+     * @param $id   The database ID for the show
+     * @param $url  The NPR url for the show
+     */
     function __construct($id, $url) {
         $this->id = $id;
         $this->url = $url;
     }
 
+    /**
+     * Gets all the stories for a given show
+     *
+     * @param $date Optional, specifies the day of the show to retrieve
+     * @return mixed|null An associative array representing the show data
+     */
     public function get_stories($date) {
         $url = $this->url;
         if ($date) {
@@ -17,11 +27,21 @@ class NPRShow extends RestClient {
         return $this->rest_call($url);
     }
 
+    /**
+     * Gets a list of all the shows in the database
+     *
+     * @return array
+     */
     public static function get_shows() {
-        $shows = array(
-            'npr-morning-edition' => new NPRShow(1, 'http://api.npr.org/query?id=3&output=JSON&apiKey='.NPR_API_KEY),
-            'npr-all-things-considered' => new NPRShow(2, 'http://api.npr.org/query?id=2&output=JSON&apiKey='.NPR_API_KEY)
-        );
+        $shows = array();
+
+        $db = new MyDB();
+        $sql = 'SELECT id, npr_show_id, code FROM webref_rss_details';
+        $results = $db->query($sql);
+
+        while ($row = $results->fetchArray()) {
+            $shows[$row['code']] = new NPRShow($row['id'], 'http://api.npr.org/query?output=JSON&apiKey='.NPR_API_KEY.'&id='.$row['npr_show_id']);
+        }
 
         return $shows;
     }

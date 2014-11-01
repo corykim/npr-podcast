@@ -2,8 +2,15 @@
 
 class RSS
 {
+    /**
+     * The database table where RSS items are stored
+     * @var string
+     */
     public $itemsTable = "webref_rss_items";
 
+    /**
+     * @param $show An NPRShow instance
+     */
     function __construct($show)
     {
         $this->show = $show;
@@ -19,7 +26,7 @@ class RSS
 
     public function updateFeed($date)
     {
-        $msg = "Updating ".$this->show->url.': '.$this->show->url;
+        $msg = "Updating ".$this->show->id.': '.$this->show->url;
         $this->myDB->log_entry($msg);
         error_log($msg);
         $stories = $this->show->get_stories($date);
@@ -27,40 +34,44 @@ class RSS
         $sql = "INSERT INTO webref_rss_items (story_id, rss_id, title, description, link, media_url, media_duration, pub_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->myDB->prepare($sql);
 
-        foreach($stories['list']['story'] as $story) {
-            $id = $story['id'];
-            $title = $story['title']['$text'];
-            error_log("story: $id: $title");
+        if (isset($stories['list']) && isset($stories['list']['story'])) {
+            foreach($stories['list']['story'] as $story) {
+                $id = $story['id'];
+                $title = $story['title']['$text'];
+                error_log("story: $id: $title");
 
-            $media_url = isset($story['audio'][0]['format']['mp3']) ? $story['audio'][0]['format']['mp3'][0]['$text'] : null ;
-            if ($media_url) {
-                $sql = "SELECT COUNT(*) FROM ".$this->itemsTable." WHERE story_id=$id";
-                $query = $this->myDB->query($sql);
-                if ($query->fetchArray()[0] == 0) {
-                    error_log("creating story.");
+                $media_url = isset($story['audio'][0]['format']['mp3']) ? $story['audio'][0]['format']['mp3'][0]['$text'] : null;
+                if ($media_url) {
+                    $sql = "SELECT COUNT(*) FROM " . $this->itemsTable . " WHERE story_id=$id";
+                    $query = $this->myDB->query($sql);
+                    if ($query->fetchArray()[0] == 0) {
+                        error_log("creating story.");
 
-                    error_log("media_url: $media_url");
-                    $mp3_url = $this->get_data($media_url);
-                    error_log("mp3_url: $mp3_url");
+                        error_log("media_url: $media_url");
+                        $mp3_url = $this->get_data($media_url);
+                        error_log("mp3_url: $mp3_url");
 
-                    $stmt->bindParam(1, $id);                               // story_id
-                    $stmt->bindParam(2, $this->show->id);                   // rss_id
-                    $stmt->bindParam(3, $title);          // title
-                    $stmt->bindParam(4, $story['teaser']['$text']);         // description
-                    $stmt->bindParam(5, $story['link'][0]['$text']);         // link
-                    $stmt->bindParam(6, $mp3_url);  // media url
-                    $stmt->bindParam(7, $story['audio'][0]['duration']['$text']);       // media duration
-                    $stmt->bindParam(8, $story['pubDate']['$text']);       // pub_date
-                    $result = $stmt->execute();
-                    if (!$result) {
-                        error_log("Error executing query ".error_get_last());
+                        $stmt->bindParam(1, $id); // story_id
+                        $stmt->bindParam(2, $this->show->id); // rss_id
+                        $stmt->bindParam(3, $title); // title
+                        $stmt->bindParam(4, $story['teaser']['$text']); // description
+                        $stmt->bindParam(5, $story['link'][0]['$text']); // link
+                        $stmt->bindParam(6, $mp3_url); // media url
+                        $stmt->bindParam(7, $story['audio'][0]['duration']['$text']); // media duration
+                        $stmt->bindParam(8, $story['pubDate']['$text']); // pub_date
+                        $result = $stmt->execute();
+                        if (!$result) {
+                            error_log("Error executing query " . error_get_last());
+                        }
+                    } else {
+                        error_log("story already exists.");
                     }
                 } else {
-                    error_log("story already exists.");
+                    error_log("story audio is not currently available.");
                 }
-            } else {
-                error_log("story audio is not currently available.");
             }
+        } else {
+            error_log("show has no stories");
         }
     }
 

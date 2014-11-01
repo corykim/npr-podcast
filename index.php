@@ -1,5 +1,6 @@
 <?
 require 'constants.php';
+require 'key.php';
 require 'autoload.php';
 
 use Podcast\NPRShow;
