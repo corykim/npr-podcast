@@ -45,7 +45,6 @@ class NPRShow extends RestClient {
 
         return $shows;
     }
-
 }
 
 // NPR API reference: http://www.npr.org/templates/apidoc/inputReference.php

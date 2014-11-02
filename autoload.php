@@ -17,7 +17,7 @@ spl_autoload_register(function ($class) {
     $prefix = 'Podcast\\';
 
     // base directory for the namespace prefix
-    $base_dir = __DIR__ . '/classes/';
+    $base_dir = __DIR__ . '/src/classes/';
 
     // does the class use the namespace prefix?
     $len = strlen($prefix);

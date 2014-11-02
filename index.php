@@ -29,7 +29,7 @@ if (!isset($shows[$podcast_name])) {
 } else {
     $show = $shows[$podcast_name];
     $rss = new RSS($show);
-    header("Content-Type: application/xml; charset=ISO-8859-1");
+    header("Content-Type: application/xml; charset=utf-8");
     echo $rss->getFeed();
 }
 

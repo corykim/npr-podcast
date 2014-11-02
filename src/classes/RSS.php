@@ -31,7 +31,7 @@ class RSS
         error_log($msg);
         $stories = $this->show->get_stories($date);
 
-        $sql = "INSERT INTO webref_rss_items (story_id, rss_id, title, description, link, media_url, media_duration, pub_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO webref_rss_items (story_id, rss_id, title, description, link, media_url, media_duration, pub_date, show_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->myDB->prepare($sql);
 
         if (isset($stories['list']) && isset($stories['list']['story'])) {
@@ -59,6 +59,7 @@ class RSS
                         $stmt->bindParam(6, $mp3_url); // media url
                         $stmt->bindParam(7, $story['audio'][0]['duration']['$text']); // media duration
                         $stmt->bindParam(8, $story['pubDate']['$text']); // pub_date
+                        $stmt->bindParam(9, $this->to_sqldate(date_parse($story['pubDate']['$text']))); // story_date
                         $result = $stmt->execute();
                         if (!$result) {
                             error_log("Error executing query " . error_get_last());
@@ -80,7 +81,7 @@ class RSS
         return $this->getDetails() . $this->getItems();
     }
 
-    private function getDetails()
+    protected function getDetails()
     {
         $detailsTable = "webref_rss_details";
         $query = "SELECT * FROM ". $detailsTable." WHERE ID=".$this->show->id;
@@ -90,13 +91,6 @@ class RSS
 
         while($row = $result->fetchArray())
         {
-            // save some details for the item list
-            $this->image_title = $row['image_title'];
-            $this->image_url = $row['image_url'];
-            $this->image_width = $row['image_width'];
-            $this->image_height = $row['image_height'];
-            $this->author = $row["author"];
-
             $details = '<?xml version="1.0" encoding="UTF-8" ?>
     <rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0">
         <channel>
@@ -105,46 +99,51 @@ class RSS
             <language>'. $row['language'] .'</language>
             <copyright><![CDATA[℗ &amp; © 2014 '. $row["author"] .']]></copyright>
             <itunes:subtitle>A podcast from NPR</itunes:subtitle>
-            <itunes:author><![CDATA['. $this->author .']]></itunes:author>
+            <itunes:author><![CDATA['. $row["author"] .']]></itunes:author>
             <itunes:summary><![CDATA['. $row["description"] .']]></itunes:summary>
             <description><![CDATA['. $row["description"] .']]></description>
             <itunes:owner>
                 <itunes:name>C.K.</itunes:name>
                 <itunes:email>ck@example.com</itunes:email>
             </itunes:owner>
-            <itunes:image href="'.$this->escape_xml($this->image_url).'"/>
+            <itunes:image href="'.$this->escape_xml($row['image_url']).'"/>
             <itunes:explicit>no</itunes:explicit>
 
             <image>
-                <title><![CDATA['. $this->image_title .']]></title>
-                <url>'. $this->escape_xml($this->image_url) .'</url>
+                <title><![CDATA['. $row['image_title'] .']]></title>
+                <url>'. $this->escape_xml($row['image_url']) .'</url>
                 <link>'. $this->escape_xml($row['image_link']) .'</link>
-                <width>'. $this->image_width .'</width>
-                <height>'. $this->image_height .'</height>
+                <width>'. $row['image_width'] .'</width>
+                <height>'. $row['image_height'] .'</height>
              </image>';
         }
-
-
 
         return $details;
     }
 
-    private function getItems()
+    protected function getItems()
     {
 
-        $query = "SELECT * FROM ". $this->itemsTable." WHERE RSS_ID=".$this->show->id;
+        $query = "SELECT * FROM ". $this->itemsTable." WHERE RSS_ID=".$this->show->id. ' ORDER BY show_date DESC, id ASC';
 //        error_log("getItems query: $query");
 
         $result = $this->myDB->query($query);
         $items = '';
         while($row = $result->fetchArray())
         {
-            $minutes = floor($row['media_duration']/60);
-            $seconds = $row['media_duration'] - ($minutes * 60);
-            $items .= '
-        <item>
+            $items .= outputItem($row) . "\n";
+        }
+        $items .= '</channel>
+    </rss>';
+        return $items;
+    }
+
+    public function outputItem($row) {
+        $minutes = floor($row['media_duration']/60);
+        $seconds = $row['media_duration'] - ($minutes * 60);
+
+        $item = '<item>
             <title><![CDATA['. $row["title"] .']]></title>
-            <itunes:author><![CDATA['. $this->author .']]></itunes:author>
             <itunes:summary><![CDATA['. $row["description"] .']]></itunes:summary>
 
             <enclosure
@@ -163,11 +162,10 @@ class RSS
             <itunes:duration>'.$minutes.':'.$seconds.'</itunes:duration>
             <itunes:keywords>radio, news</itunes:keywords>
         </item>';
-        }
-        $items .= '</channel>
-    </rss>';
-        return $items;
+
+        return $item;
     }
+
 
     private function escape_xml($string) {
         return str_replace('&', '&amp;', $string);
@@ -185,6 +183,13 @@ class RSS
         return $data;
     }
 
+    public function to_sqldate($date) {
+        return sprintf("%04d-%02d-%02d", $date['year'], $date['month'], $date['day']);
+    }
+
+    public function to_sqldatetime($date) {
+        return sprintf("%04d-%02d-%02d %02d:%02d:%02d", $date['year'], $date['month'], $date['day'], $date['hour'], $date['minute'], $date['second']);
+    }
 }
 
 ?>
