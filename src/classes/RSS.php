@@ -131,7 +131,7 @@ class RSS
         $items = '';
         while($row = $result->fetchArray())
         {
-            $items .= outputItem($row) . "\n";
+            $items .= $this->outputItem($row) . "\n";
         }
         $items .= '</channel>
     </rss>';
@@ -158,7 +158,7 @@ class RSS
             <description><![CDATA['. $row["description"] .']]></description>
 
             <itunes:subtitle>A podcast from NPR</itunes:subtitle>
-            <guid>'.$this->escape_xml($row['media_url']).'</guid>
+            <guid>'.$this->generate_guid($row).'</guid>
             <itunes:duration>'.$minutes.':'.$seconds.'</itunes:duration>
             <itunes:keywords>radio, news</itunes:keywords>
         </item>';
@@ -166,6 +166,10 @@ class RSS
         return $item;
     }
 
+    private function generate_guid($row) {
+        return 'corykim:'.$this->show->id.':'.$row['story_id'].':'.
+            $this->escape_xml($row['media_url']);
+    }
 
     private function escape_xml($string) {
         return str_replace('&', '&amp;', $string);
