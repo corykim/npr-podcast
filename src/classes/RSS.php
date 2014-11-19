@@ -51,6 +51,9 @@ class RSS
                         $mp3_url = $this->get_data($media_url);
                         error_log("mp3_url: $mp3_url");
 
+                        $show_date = $this->to_sqldate(date_parse($story['pubDate']['$text']));
+                        error_log($story['pubDate']['$text'] . ' parsed to '.$show_date);
+
                         $stmt->bindParam(1, $id); // story_id
                         $stmt->bindParam(2, $this->show->id); // rss_id
                         $stmt->bindParam(3, $title); // title
@@ -59,7 +62,7 @@ class RSS
                         $stmt->bindParam(6, $mp3_url); // media url
                         $stmt->bindParam(7, $story['audio'][0]['duration']['$text']); // media duration
                         $stmt->bindParam(8, $story['pubDate']['$text']); // pub_date
-                        $stmt->bindParam(9, $this->to_sqldate(date_parse($story['pubDate']['$text']))); // story_date
+                        $stmt->bindParam(9, $show_date); // story_date
                         $result = $stmt->execute();
                         if (!$result) {
                             error_log("Error executing query " . error_get_last());
