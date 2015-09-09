@@ -59,7 +59,8 @@ CREATE TABLE `webref_rss_items` (
   `link` text NOT NULL,
   `media_url` text NOT NULL,
   `media_duration` INTEGER NOT NULL,
-  `pub_date` DATE NOT NULL
+  `pub_date` DATE NOT NULL,
+  `show_date` DATE NOT NULL
 );
 
 DROP TABLE `audit_log`;
