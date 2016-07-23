@@ -7,3 +7,4 @@ A Rtmp client for PHP
 - PHP5.5 or better
 - php-sqlite3
 - php-curl
+- mod-rewrite
