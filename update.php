@@ -1,4 +1,4 @@
-<?
+<?php
 require 'constants.php';
 require 'key.php';
 require 'autoload.php';
