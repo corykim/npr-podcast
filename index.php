@@ -47,7 +47,7 @@ function endswith($string, $test) {
 <html>
     <h1>Podcasts</h1>
     <ul>
-        <?
+        <?php
     foreach (array_keys($shows) as $show_code) {
         echo "<li><a href='/{$show_code}'>$show_code</a></li>\n";
     }
