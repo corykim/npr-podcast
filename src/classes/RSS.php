@@ -31,10 +31,11 @@ class RSS
         error_log($msg);
         $stories = $this->show->get_stories($date);
 
-        $sql = "INSERT INTO webref_rss_items (story_id, rss_id, title, description, link, media_url, media_duration, pub_date, show_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO webref_rss_items (story_id, rss_id, title, description, link, media_url, media_duration, pub_date, show_date, feature_order) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->myDB->prepare($sql);
 
         if (isset($stories['list']) && isset($stories['list']['story'])) {
+            $counter = 1;
             foreach($stories['list']['story'] as $story) {
                 $id = $story['id'];
                 $title = $story['title']['$text'];
@@ -63,10 +64,13 @@ class RSS
                         $stmt->bindParam(7, $story['audio'][0]['duration']['$text']); // media duration
                         $stmt->bindParam(8, $story['pubDate']['$text']); // pub_date
                         $stmt->bindParam(9, $show_date); // story_date
+                        $stmt->bindParam(10, $counter); // order featured in show
                         $result = $stmt->execute();
                         if (!$result) {
                             error_log("Error executing query " . error_get_last());
                         }
+
+                        $counter = $counter + 1;
                     } else {
                         error_log("story already exists.");
                     }
@@ -145,6 +149,14 @@ class RSS
         $minutes = floor($row['media_duration']/60);
         $seconds = $row['media_duration'] - ($minutes * 60);
 
+        // we alter the date so the podcast shows the episodes in the order they were aired
+        $order_date = new \DateTime($row['pub_date']);
+        $increment = ($row['feature_order'] + 0) * 5;
+        $interval_spec = "PT" . $increment . "M";
+        $interval = new \DateInterval($interval_spec);
+
+        date_add(date_time_set($order_date, 0, 0, 0), $interval);
+
         $item = '<item>
             <title><![CDATA['. $row["title"] .']]></title>
             <itunes:summary><![CDATA['. $row["description"] .']]></itunes:summary>
@@ -155,7 +167,7 @@ class RSS
                 length="'.($row['media_duration']*1000).'"
             />
 
-            <pubDate>'.$row['pub_date'].'</pubDate>
+            <pubDate>'.$order_date->format("D, d M Y H:i:s O").'</pubDate>
 
             <link>'. $this->escape_xml($row["link"]) .'</link>
             <description><![CDATA['. $row["description"] .']]></description>

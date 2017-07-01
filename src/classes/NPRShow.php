@@ -4,10 +4,12 @@ class NPRShow extends RestClient {
     /**
      * @param $id   The database ID for the show
      * @param $url  The NPR url for the show
+     * @param $order The order in which the show should be presented
      */
-    function __construct($id, $url) {
+    function __construct($id, $url, $order) {
         $this->id = $id;
         $this->url = $url;
+        $this->order = $order;
     }
 
     /**
@@ -19,7 +21,7 @@ class NPRShow extends RestClient {
     public function get_stories($date) {
         $url = $this->url;
         if ($date) {
-            $url = $url."&date=$date";
+            $url = $url."&sort=featured&date=$date";
             error_log("Set date to $date");
         }
 
@@ -39,8 +41,10 @@ class NPRShow extends RestClient {
         $sql = 'SELECT id, npr_show_id, code FROM webref_rss_details';
         $results = $db->query($sql);
 
+        $counter = 0;
         while ($row = $results->fetchArray()) {
-            $shows[$row['code']] = new NPRShow($row['id'], 'http://api.npr.org/query?output=JSON&apiKey='.NPR_API_KEY.'&id='.$row['npr_show_id']);
+            $shows[$row['code']] = new NPRShow($row['id'], 'http://api.npr.org/query?output=JSON&apiKey='.NPR_API_KEY.'&id='.$row['npr_show_id'], $counter);
+            $counter = $counter + 1;
         }
 
         return $shows;
@@ -50,7 +54,7 @@ class NPRShow extends RestClient {
 // NPR API reference: http://www.npr.org/templates/apidoc/inputReference.php
 // Programs: http://api.npr.org/list?id=3004
 
-// Morning Edition:  http://api.npr.org/query?apiKey=MDE2MzQ5ODY0MDE0MDg4MTMwNzMxMzNkYQ001&id=3
-// ATC:  http://api.npr.org/query?apiKey=MDE2MzQ5ODY0MDE0MDg4MTMwNzMxMzNkYQ001&id=2
+// Morning Edition:  http://api.npr.org/query?apiKey=API_KEY&sort=featured&id=3
+// ATC:  http://api.npr.org/query?apiKey=API_KEY&sort=featured&id=2
 
 ?>
