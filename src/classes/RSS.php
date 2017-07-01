@@ -131,7 +131,7 @@ class RSS
     protected function getItems()
     {
 
-        $query = "SELECT * FROM ". $this->itemsTable." WHERE RSS_ID=".$this->show->id. ' ORDER BY show_date DESC, id ASC';
+        $query = "SELECT * FROM ". $this->itemsTable." WHERE RSS_ID=".$this->show->id. " AND pub_date >= date('now', '-10 day') ORDER BY show_date DESC, id ASC";
 //        error_log("getItems query: $query");
 
         $result = $this->myDB->query($query);
@@ -155,7 +155,7 @@ class RSS
         $interval_spec = "PT" . $increment . "M";
         $interval = new \DateInterval($interval_spec);
 
-        date_add(date_time_set($order_date, 0, 0, 0), $interval);
+        date_add(date_time_set($order_date, 8, 0, 0), $interval);
 
         $item = '<item>
             <title><![CDATA['. $row["title"] .']]></title>
