@@ -157,8 +157,6 @@ class RSS
 
         date_add(date_time_set($order_date, 0, 0, 0), $interval);
 
-        error_log("Order date: " + $order_date);
-
         $item = '<item>
             <title><![CDATA['. $row["title"] .']]></title>
             <itunes:summary><![CDATA['. $row["description"] .']]></itunes:summary>
