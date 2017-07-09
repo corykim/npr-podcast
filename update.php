@@ -9,10 +9,8 @@ use Podcast\RSS;
 error_log(strftime("%F  %T", time()) . " update begins.");
 error_log("----------------------------------------------");
 
-$date = isset($argv[1]) ? $argv[1] : null;  // YYYYMMDD
-if (!empty($date)) {
-    error_log("Getting shows for date: $date");
-}
+$date = isset($argv[1]) ? date_create($argv[1]) : new \DateTime();  // YYYY-MM-DD
+error_log("Getting shows for date: " . $date->format('Y-m-d'));
 
 $shows = NPRShow::get_shows();
 

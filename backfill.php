@@ -33,13 +33,12 @@ error_log("Starting backfill from " .$stop->format('Y-m-d'). " to " .$date->form
 error_log("----------------------------------------------");
 
 while ($date >= $stop) {
-    $npr_date = $date->format('Ymd');
-    error_log("Getting shows for date: " .$date->format('Y-m-d') . "  (" .$npr_date.")" );
+    error_log("Getting shows for date: " .$date->format('Y-m-d'));
     $shows = NPRShow::get_shows();
 
     foreach ($shows as $show) {
         $rss = new RSS($show);
-        echo $rss->updateFeed($npr_date);
+        echo $rss->updateFeed($date);
     }
     $date->sub($increment);
 }

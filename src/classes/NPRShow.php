@@ -15,14 +15,15 @@ class NPRShow extends RestClient {
     /**
      * Gets all the stories for a given show
      *
-     * @param $date Optional, specifies the day of the show to retrieve
+     * @param $date Optional, specifies the YYYY-MM-DD day of the show to retrieve
      * @return mixed|null An associative array representing the show data
      */
     public function get_stories($date) {
         $url = $this->url;
         if ($date) {
-            $url = $url."&sort=featured&date=$date";
-            error_log("Set date to $date");
+            $npr_date = $date->format('Ymd');
+            $url = $url."&sort=featured&date=$npr_date";
+            error_log("Set date to " .$date->format('Y-m-d'). " ($npr_date)");
         }
 
         error_log("Retrieving shows from: $url");
