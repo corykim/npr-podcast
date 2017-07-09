@@ -130,8 +130,10 @@ class RSS
 
     protected function getItems()
     {
-
-        $query = "SELECT * FROM ". $this->itemsTable." WHERE RSS_ID=".$this->show->id. " AND pub_date >= date('now', '-10 day') ORDER BY julianday(show_date) DESC, feature_order ASC";
+        // if we want to filter by number of days, we can use:
+        //   pub_date >= date('now', '-10 day')
+        // but I'm not sure right now whether there's a good reason to do that
+        $query = "SELECT * FROM ". $this->itemsTable." WHERE RSS_ID=".$this->show->id. " ORDER BY julianday(show_date) DESC, feature_order ASC";
 //        error_log("getItems query: $query");
 
         $result = $this->myDB->query($query);
