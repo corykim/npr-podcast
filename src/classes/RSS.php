@@ -24,6 +24,19 @@ class RSS
         unset($this->myDB);
     }
 
+    public function trimFeed($date)
+    {
+        $msg = "Trimming ".$this->show->id.': '.$this->show->url . '; min date: ' . $date->format('Y-m-d');
+        $this->myDB->log_entry($msg);
+        error_log($msg);
+
+        $sql = "DELETE FROM webref_rss_items WHERE rss_id = " . $this->show->id . " AND show_date < " . $date->format('Y-m-d');
+        error_log($sql);
+
+        $result = $this->myDB->query($sql);
+    }
+
+
     public function updateFeed($date)
     {
         $msg = "Updating ".$this->show->id.': '.$this->show->url;
